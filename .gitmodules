@@ -1,0 +1,6 @@
+[submodule "convolution-flavors"]
+	path = convolution-flavors
+	url = git@github.com:luot-ai/favor.git
+[submodule "LearnAndTry"]
+	path = LearnAndTry
+	url = git@github.com:luot-ai/wino.git

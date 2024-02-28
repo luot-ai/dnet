@@ -455,13 +455,15 @@ void forward_convolutional_layer(convolutional_layer l, network net)
         net.input = l.binary_input;
     }
 
-    int m = l.n/l.groups;
+    int m = l.n/l.groups;//how many output feature nums of each group
     int k = l.size*l.size*l.c/l.groups;
     int n = l.out_w*l.out_h;
     for(i = 0; i < l.batch; ++i){
-        for(j = 0; j < l.groups; ++j){
+        for(j = 0; j < l.groups; ++j){//indicate which group of kernel,groups are independent of each other
             float *a = l.weights + j*l.nweights/l.groups;
             float *b = net.workspace;
+            //cal the location of ofmap and ifmap
+            //already passed group num * num of elements in a group
             float *c = l.output + (i*l.groups + j)*n*m;
             float *im =  net.input + (i*l.groups + j)*l.c/l.groups*l.h*l.w;
 
