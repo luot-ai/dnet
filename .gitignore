@@ -19,7 +19,7 @@ cfg/
 darknet
 .fuse*
 output/*
-obj/
+obj/important/*
 weights/*
 
 # OS Generated #
