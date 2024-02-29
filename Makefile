@@ -2,7 +2,7 @@ GPU=0
 CUDNN=0
 OPENCV=0
 OPENMP=0
-DEBUG=0
+DEBUG=1
 REF=1
 M5OP=1
 USEWINO=1
@@ -52,7 +52,7 @@ CFLAGS+= -fopenmp
 endif
 
 ifeq ($(DEBUG), 1) 
-OPTS=-O2 -g
+OPTS=-O2 
 endif
 
 CFLAGS+=$(OPTS)
