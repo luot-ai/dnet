@@ -92,13 +92,13 @@ Disassembly of section .text:
 00000000000000d4 <.L28>:
   d4:	037c4ebb          	divw	t4,s8,s7  # c / ksize
   d8:	5742                	lw	a4,48(sp)
-  da:	6786                	ld	a5,64(sp) #width_col-pad
+  da:	6786                	ld	a5,64(sp) #pad
   dc:	7662                	ld	a2,56(sp)
   de:	037c68bb          	remw	a7,s8,s7  # w_offset
   e2:	037ec6bb          	divw	a3,t4,s7  # a3=c_im
-  e6:	01170b3b          	addw	s6,a4,a7  # s6=w_offset+
+  e6:	01170b3b          	addw	s6,a4,a7  # s6=w_offset+[width_col-pad]
   ea:	5722                	lw	a4,40(sp)
-  ec:	40f8893b          	subw	s2,a7,a5
+  ec:	40f8893b          	subw	s2,a7,a5  # w_offset-pad
   f0:	037eeebb          	remw	t4,t4,s7  # h_offset
   f4:	033686bb          	mulw	a3,a3,s3  # c_im*channel【所以是把函数拆出来了】
   f8:	01d70d3b          	addw	s10,a4,t4
@@ -119,7 +119,7 @@ Disassembly of section .text:
  122:	8672                	mv	a2,t3
 
 0000000000000124 <.L24>:
- 124:	00fd873b          	addw	a4,s11,a5  # a5=col,col+s11
+ 124:	00fd873b          	addw	a4,s11,a5  # a5=col[已经-pad],col+s11
  128:	070a                	sll	a4,a4,0x2 
  12a:	f00007d3          	fmv.w.x	fa5,zero
  12e:	9726                	add	a4,a4,s1   # s1是基址
