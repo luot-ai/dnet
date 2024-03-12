@@ -25,14 +25,14 @@ Disassembly of section .text:
 
 0000000000000034 <im2col_cpu>:
   34:	7155                	add	sp,sp,-208
-  36:	0018131b          	sllw	t1,a6,0x1
+  36:	0018131b          	sllw	t1,a6,0x1 //t1=2*pad
   3a:	fd26                	sd	s1,184(sp)
   3c:	84b6                	mv	s1,a3
-  3e:	00c306bb          	addw	a3,t1,a2
+  3e:	00c306bb          	addw	a3,t1,a2 //a2=height
   42:	f152                	sd	s4,160(sp)
-  44:	40e68a3b          	subw	s4,a3,a4
+  44:	40e68a3b          	subw	s4,a3,a4 //(height + 2*pad )- ksize
   48:	8ec2                	mv	t4,a6
-  4a:	02fa483b          	divw	a6,s4,a5
+  4a:	02fa483b          	divw	a6,s4,a5 //a5=stride
   4e:	f54e                	sd	s3,168(sp)
   50:	89b2                	mv	s3,a2
   52:	0093063b          	addw	a2,t1,s1
@@ -44,15 +44,15 @@ Disassembly of section .text:
   60:	e586                	sd	ra,200(sp)
   62:	e846                	sd	a7,16(sp)
   64:	02f6463b          	divw	a2,a2,a5
-  68:	0018071b          	addw	a4,a6,1
+  68:	0018071b          	addw	a4,a6,1 //a4=height_col
   6c:	f03a                	sd	a4,32(sp)
   6e:	02bb87bb          	mulw	a5,s7,a1
   72:	037787bb          	mulw	a5,a5,s7
   76:	ec3e                	sd	a5,24(sp)
-  78:	0ef05f63          	blez	a5,176 <.L8>
-  7c:	0ee05d63          	blez	a4,176 <.L8>
+  78:	0ef05f63          	blez	a5,176 <.L8> //a5=channels_col
+  7c:	0ee05d63          	blez	a4,176 <.L8> //a4=height_col
   80:	0006059b          	sext.w	a1,a2
-  84:	2605                	addw	a2,a2,1
+  84:	2605                	addw	a2,a2,1  //a2=width_col
   86:	0ec05863          	blez	a2,176 <.L8>
   8a:	e1a2                	sd	s0,192(sp)
   8c:	f94a                	sd	s2,176(sp)
@@ -63,15 +63,15 @@ Disassembly of section .text:
   96:	f4ee                	sd	s11,104(sp)
   98:	4785                	li	a5,1
   9a:	842a                	mv	s0,a0
-  9c:	10fd1463          	bne	s10,a5,1a4 <.L40>
+  9c:	10fd1463          	bne	s10,a5,1a4 <.L40> #stride不等于1就去.40
   a0:	4d85                	li	s11,1
   a2:	00158a93          	add	s5,a1,1
-  a6:	41dd8dbb          	subw	s11,s11,t4
+  a6:	41dd8dbb          	subw	s11,s11,t4  # 1-pad
   aa:	002a9793          	sll	a5,s5,0x2
   ae:	e03e                	sd	a5,0(sp)
   b0:	01b807bb          	addw	a5,a6,s11
   b4:	d43e                	sw	a5,40(sp)
-  b6:	00bd87bb          	addw	a5,s11,a1
+  b6:	00bd87bb          	addw	a5,s11,a1    # s11=1-pad a1=width_col-1
   ba:	00261a13          	sll	s4,a2,0x2
   be:	d83e                	sw	a5,48(sp)
   c0:	87a6                	mv	a5,s1
@@ -84,48 +84,53 @@ Disassembly of section .text:
   d0:	e0f6                	sd	t4,64(sp)
   d2:	8a3e                	mv	s4,a5
 
+
+
+
+
+
 00000000000000d4 <.L28>:
-  d4:	037c4ebb          	divw	t4,s8,s7
+  d4:	037c4ebb          	divw	t4,s8,s7  # c / ksize
   d8:	5742                	lw	a4,48(sp)
-  da:	6786                	ld	a5,64(sp)
+  da:	6786                	ld	a5,64(sp) #width_col-pad
   dc:	7662                	ld	a2,56(sp)
-  de:	037c68bb          	remw	a7,s8,s7
-  e2:	037ec6bb          	divw	a3,t4,s7
-  e6:	01170b3b          	addw	s6,a4,a7
+  de:	037c68bb          	remw	a7,s8,s7  # w_offset
+  e2:	037ec6bb          	divw	a3,t4,s7  # a3=c_im
+  e6:	01170b3b          	addw	s6,a4,a7  # s6=w_offset+
   ea:	5722                	lw	a4,40(sp)
   ec:	40f8893b          	subw	s2,a7,a5
-  f0:	037eeebb          	remw	t4,t4,s7
-  f4:	033686bb          	mulw	a3,a3,s3
+  f0:	037eeebb          	remw	t4,t4,s7  # h_offset
+  f4:	033686bb          	mulw	a3,a3,s3  # c_im*channel【所以是把函数拆出来了】
   f8:	01d70d3b          	addw	s10,a4,t4
   fc:	6722                	ld	a4,8(sp)
   fe:	40fe8abb          	subw	s5,t4,a5
  102:	67c2                	ld	a5,16(sp)
- 104:	02c70e3b          	mulw	t3,a4,a2
- 108:	015686bb          	addw	a3,a3,s5
- 10c:	03968dbb          	mulw	s11,a3,s9
+ 104:	02c70e3b          	mulw	t3,a4,a2  # a4=0,a2=width_col
+ 108:	015686bb          	addw	a3,a3,s5  # s5=row
+ 10c:	03968dbb          	mulw	s11,a3,s9  # s9=width
  110:	0e0a                	sll	t3,t3,0x2
- 112:	9e3e                	add	t3,t3,a5
+ 112:	9e3e                	add	t3,t3,a5  #data_col基址+colindex
 
 0000000000000114 <.L27>:
  114:	000a879b          	sext.w	a5,s5
- 118:	060ac763          	bltz	s5,186 <.L21>
- 11c:	0737d563          	bge	a5,s3,186 <.L21>
+ 118:	060ac763          	bltz	s5,186 <.L21>  #row<0
+ 11c:	0737d563          	bge	a5,s3,186 <.L21> #row>=height s3=height
  120:	87ca                	mv	a5,s2
  122:	8672                	mv	a2,t3
 
 0000000000000124 <.L24>:
- 124:	00fd873b          	addw	a4,s11,a5
- 128:	070a                	sll	a4,a4,0x2
+ 124:	00fd873b          	addw	a4,s11,a5  # a5=col,col+s11
+ 128:	070a                	sll	a4,a4,0x2 
  12a:	f00007d3          	fmv.w.x	fa5,zero
- 12e:	9726                	add	a4,a4,s1
+ 12e:	9726                	add	a4,a4,s1   # s1是基址
  130:	0007859b          	sext.w	a1,a5
- 134:	0007c663          	bltz	a5,140 <.L26>
- 138:	0145d463          	bge	a1,s4,140 <.L26>
+ 134:	0007c663          	bltz	a5,140 <.L26>  #col<0
+ 138:	0145d463          	bge	a1,s4,140 <.L26>  #col>width
  13c:	00072787          	flw	fa5,0(a4)
 
 0000000000000140 <.L26>:
  140:	2785                	addw	a5,a5,1
- 142:	00f62027          	fsw	fa5,0(a2)
+ 142:	00f62027          	fsw	fa5,0(a2)  #######################################
  146:	0611                	add	a2,a2,4
  148:	fcfb1ee3          	bne	s6,a5,124 <.L24>
  14c:	2a85                	addw	s5,s5,1
@@ -141,6 +146,11 @@ Disassembly of section .text:
  160:	e43e                	sd	a5,8(sp)
  162:	67e2                	ld	a5,24(sp)
  164:	f78798e3          	bne	a5,s8,d4 <.L28>
+
+
+
+
+
 
 0000000000000168 <.L39>:
  168:	640e                	ld	s0,192(sp)
@@ -173,6 +183,10 @@ Disassembly of section .text:
  19a:	019d8dbb          	addw	s11,s11,s9
  19e:	f7aa9be3          	bne	s5,s10,114 <.L27>
  1a2:	bf5d                	j	158 <.L41>
+
+
+
+
 
 00000000000001a4 <.L40>:
  1a4:	029d0c3b          	mulw	s8,s10,s1
@@ -248,11 +262,11 @@ Disassembly of section .text:
  250:	0007069b          	sext.w	a3,a4
  254:	00074663          	bltz	a4,260 <.L13>
  258:	0176d463          	bge	a3,s7,260 <.L13>
- 25c:	0007a787          	flw	fa5,0(a5)
+ 25c:	0007a787          	flw	fa5,0(a5) ###################
 
 0000000000000260 <.L13>:
  260:	0611                	add	a2,a2,4
- 262:	fef62e27          	fsw	fa5,-4(a2)
+ 262:	fef62e27          	fsw	fa5,-4(a2) ####################
  266:	01a7073b          	addw	a4,a4,s10
  26a:	fd861de3          	bne	a2,s8,244 <.L14>
  26e:	0014079b          	addw	a5,s0,1
