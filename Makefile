@@ -2,7 +2,7 @@ GPU=0
 CUDNN=0
 OPENCV=0
 OPENMP=0
-DEBUG=1
+DEBUG=0
 REF=1
 M5OP=1
 USEWINO=1
@@ -19,7 +19,7 @@ VPATH=./src/:./examples
 SLIB=libdarknet.so
 ALIB=libdarknet.a
 LIBS= m openblas
-EXEC?=main
+EXEC?=winomain
 OBJDIR=./obj/
 
 FLAVOUR= convolution-flavors
