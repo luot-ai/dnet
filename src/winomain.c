@@ -22,17 +22,20 @@ float GT[12] = {1, 0.5, 0.5, 0, 0, 0.5, -0.5, 0, 0, 0.5, 0.5, 1};
 int main() {
     //------------------------------------------------
     // 产生数据
-    printf("hello");
     int m = 2, r = 3;
     // input:3*3*4  filter:3*3*4*1
     // int w = 3, h = 3, c = 4, n = 1, groups = 1, size = 3, stride = 1, pad = 0;
     // input:32*32*4  filter:3*3*4*1
     // int w = 32, h = 32, c = 4, n = 1, groups = 1, size = 3, stride = 1, pad = 0;
     // input:416*416*256  filter:3*3*256*256
-    int w = 32, h = 32, c = 3, n = 3, groups = 1, size = 3, stride = 1, pad = 0;
+    int w = 16, h = 16, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 1;
     float* d = calloc(w * h * c, sizeof(float));
     for (int i = 0; i < w * h * c; i++)
+    {
         d[i] = rand() % 10;
+        //printf("%f\n",d[i]); 
+    }
+        
     float* g = calloc(size * size * c * n, sizeof(float));
     for (int i = 0; i < size * size * c * n; i++)
         g[i] = rand() % 10;
@@ -50,12 +53,14 @@ int main() {
     float* b_0 =
         (float*)malloc(out_h * out_w * size * size * c / groups * sizeof(float));  //存储经过im2col的输入feature map
     float* output_0 = calloc(out_w * out_h * n, sizeof(float));
+    m5_dump_reset_stats(0,0);
     im2col_cpu(im_0, c / groups, h, w, size, stride, pad, b_0);
-    t2 = what_time_is_it_now();
-    printf("conv0's im2col_cpu time: %f\r\n", t2 - t1);
+    //t2 = what_time_is_it_now();
+    //printf("conv0's im2col_cpu time: %f\r\n", t2 - t1);
     gemm(0, 0, n, out_h * out_w, size * size * c, 1, a_0, size * size * c, b_0, out_h * out_w, 1, output_0,
          out_h * out_w);
-    t1 = what_time_is_it_now();
+    m5_dump_reset_stats(0,0);
+    //t1 = what_time_is_it_now();
     printf("conv0's gemm time: %f\r\n", t1 - t2);
     printf("\r\n");
 
@@ -64,26 +69,28 @@ int main() {
     float* d_5 = d;
     float* g_5 = g;
     float* transformed_d_5 =
-        (float*)malloc((w - 2) / 2 * (h - 2) / 2 * c * 16 * sizeof(float));  //存储经过im2col的输入feature map
+        (float*)malloc((w - 2 + 2 * pad) / 2 * (h - 2 + 2*pad) / 2 * c * 16 * sizeof(float));  //存储经过im2col的输入feature map
     float* transformed_g_5 = calloc(n * c * 16, sizeof(float));
     float* output_temp_5 = calloc(out_w * out_h * n, sizeof(float));
     float* output_5 = calloc(out_w * out_h * n, sizeof(float));
+    m5_dump_reset_stats(0,0);
     transforme_g_winograd2(g_5, transformed_g_5, c, n);
-    t1 = what_time_is_it_now();
+    //t1 = what_time_is_it_now();
     
-    im2col_winograd1(d_5, c / groups, h, w, size, stride, 2, 3, transformed_d_5);
-    
-    t2 = what_time_is_it_now();
-    printf("winograd5's im2col_winograd1 time: %f\r\n", t2 - t1);
+    im2col_winograd1(d_5, c / groups, h, w, size, stride, 2, 3, transformed_d_5, pad);
 
-    m5_dump_reset_stats(0,0);
-    //convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3);
-    convolutional_winograd5_cus(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3);
-    m5_dump_reset_stats(0,0);
+    //t2 = what_time_is_it_now();
+    //printf("winograd5's im2col_winograd1 time: %f\r\n", t2 - t1);
+
+    //m5_dump_reset_stats(0,0);
+    convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
+    //convolutional_winograd5_cus(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3 ,pad);
+    //m5_dump_reset_stats(0,0);
     
-    t1 = what_time_is_it_now();
-    printf("winograd5's convolutional_winograd5 time: %f\r\n", t1 - t2);
+    // t1 = what_time_is_it_now();
+    // printf("winograd5's convolutional_winograd5 time: %f\r\n", t1 - t2);
     col2im_winograd1(output_temp_5, n, h, w, size, stride, pad, m, output_5);
+    m5_dump_reset_stats(0,0);
     t2 = what_time_is_it_now();
     printf("winograd5's col2im_winograd1 time: %f\r\n", t2 - t1);
     compareResult(output_5, output_0, out_w * out_h * n);
