@@ -2,7 +2,7 @@
 
 #include <sys/time.h>
 #include <assert.h>
-
+#include "gem5/m5ops.h"
 float *get_regression_values(char **labels, int n)
 {
     float *v = calloc(n, sizeof(float));
@@ -594,14 +594,14 @@ void predict_classifier(char *datacfg, char *cfgfile, char *weightfile, char *fi
 
         float *X = r.data;
         time=clock();
+        m5_dump_reset_stats(0,0);
         float *predictions = network_predict(net, X);
         if(net->hierarchy) hierarchy_predictions(predictions, net->outputs, net->hierarchy, 1, 1);
         top_k(predictions, net->outputs, top, indexes);
+        m5_dump_reset_stats(0,0);
         fprintf(stderr, "%s: Predicted in %f seconds.\n", input, sec(clock()-time));
         for(i = 0; i < top; ++i){
             int index = indexes[i];
-            //if(net->hierarchy) printf("%d, %s: %f, parent: %s \n",index, names[index], predictions[index], (net->hierarchy->parent[index] >= 0) ? names[net->hierarchy->parent[index]] : "Root");
-            //else printf("%s: %f\n",names[index], predictions[index]);
             printf("%5.2f%%: %s\n", predictions[index]*100, names[index]);
         }
         if(r.data != im.data) free_image(r);

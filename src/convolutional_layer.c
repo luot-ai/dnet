@@ -1,3 +1,10 @@
+float A[8] = {1, 0, 1, 1, 1, -1, 0, -1};
+float AT[8] = {1, 1, 1, 0, 0, 1, -1, -1};
+float B[16] = {1, 0, 0, 0, 0, 1, -1, 1, -1, 1, 1, 0, 0, 0, 0, -1};
+float BT[16] = {1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 1, 0, 0, 1, 0, -1};
+float G[12] = {1, 0, 0, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0, 0, 1};
+float GT[12] = {1, 0.5, 0.5, 0, 0, 0.5, -0.5, 0, 0, 0.5, 0.5, 1};
+#include "common.h"
 #include "convolutional_layer.h"
 #include "utils.h"
 #include "batchnorm_layer.h"
@@ -7,7 +14,9 @@
 #include "gemm.h"
 #include <stdio.h>
 #include <time.h>
-
+#include "winograd1.h"
+#include "winograd2.h"
+#include "winograd5.h"
 #ifdef AI2
 #include "xnor_layer.h"
 #endif
@@ -467,12 +476,30 @@ void forward_convolutional_layer(convolutional_layer l, network net)
             float *c = l.output + (i*l.groups + j)*n*m;
             float *im =  net.input + (i*l.groups + j)*l.c/l.groups*l.h*l.w;
 
-            if (l.size == 1) {
-                b = im;
-            } else {
-                im2col_cpu(im, l.c/l.groups, l.h, l.w, l.size, l.stride, l.pad, b);
+            if (l.size == 3 && l.h % 2 == 0)
+            {
+                b = im ;
+                printf("use winograd!\n");
+                winograd_2d_cus(b,a,c,l.h,l.w,l.c/l.groups,l.n/l.groups,l.out_w,l.out_h,l.pad,l.stride);   
+                // float* output_cpare = calloc(l.out_w * l.out_h * l.n/l.groups, sizeof(float));  
+                // if (l.size == 1) {
+                //     b = im;
+                // } else {
+                //     im2col_cpu(im, l.c/l.groups, l.h, l.w, l.size, l.stride, l.pad, b);
+                // }
+                // gemm(0,0,m,n,k,1,a,k,b,n,1,output_cpare,n);
+                // compareResult(c, output_cpare, l.out_w * l.out_h * l.n/l.groups);
             }
-            gemm(0,0,m,n,k,1,a,k,b,n,1,c,n);
+            else
+            {
+                printf("use im2col+gemm!\n");
+                if (l.size == 1) {
+                    b = im;
+                } else {
+                    im2col_cpu(im, l.c/l.groups, l.h, l.w, l.size, l.stride, l.pad, b);
+                }
+                gemm(0,0,m,n,k,1,a,k,b,n,1,c,n);
+            }
         }
     }
 
