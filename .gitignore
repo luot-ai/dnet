@@ -19,7 +19,8 @@ cfg/
 darknet
 .fuse*
 output/*
-obj/important/*
+outputFast/*
+obj/
 weights/*
 
 # OS Generated #
