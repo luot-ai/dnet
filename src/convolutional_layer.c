@@ -17,6 +17,7 @@ float GT[12] = {1, 0.5, 0.5, 0, 0, 0.5, -0.5, 0, 0, 0.5, 0.5, 1};
 #include "winograd1.h"
 #include "winograd2.h"
 #include "winograd5.h"
+#include "gem5/m5ops.h"
 #ifdef AI2
 #include "xnor_layer.h"
 #endif
@@ -453,6 +454,7 @@ void backward_bias(float *bias_updates, float *delta, int batch, int n, int size
 
 void forward_convolutional_layer(convolutional_layer l, network net)
 {
+    m5_dump_reset_stats(0,0);
     int i, j;
 
     fill_cpu(l.outputs*l.batch, 0, l.output, 1);
@@ -479,7 +481,8 @@ void forward_convolutional_layer(convolutional_layer l, network net)
             if (l.size == 3 && l.h % 2 == 0)
             {
                 b = im ;
-                printf("use winograd!\n");
+                
+                fprintf(stderr,"use winograd!\n");
                 winograd_2d_cus(b,a,c,l.h,l.w,l.c/l.groups,l.n/l.groups,l.out_w,l.out_h,l.pad,l.stride);   
                 // float* output_cpare = calloc(l.out_w * l.out_h * l.n/l.groups, sizeof(float));  
                 // if (l.size == 1) {
@@ -492,7 +495,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
             }
             else
             {
-                printf("use im2col+gemm!\n");
+                fprintf(stderr,"use im2col+gemm!\n");
                 if (l.size == 1) {
                     b = im;
                 } else {
@@ -508,9 +511,10 @@ void forward_convolutional_layer(convolutional_layer l, network net)
     } else {
         add_bias(l.output, l.biases, l.batch, l.n, l.out_h*l.out_w);
     }
-
     activate_array(l.output, l.outputs*l.batch, l.activation);
     if(l.binary || l.xnor) swap_binary(&l);
+
+    m5_dump_reset_stats(0,0);
 }
 
 void backward_convolutional_layer(convolutional_layer l, network net)
