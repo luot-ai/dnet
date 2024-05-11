@@ -5,6 +5,8 @@
 *.png
 *.jpg
 *.pyc
+*.txt
+*.asm
 old/
 mnist/
 data/
@@ -20,7 +22,7 @@ darknet
 .fuse*
 output/*
 outputFast/*
-obj/
+obj/*
 weights/*
 
 # OS Generated #
