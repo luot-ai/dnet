@@ -3,6 +3,12 @@
 #include "gem5/m5ops.h"
 int main()
 {
+    // float* ofmap1 = calloc(4, sizeof(float));
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     ofmap1[i] = i;
+    // }
+    // test_inline1(ofmap1);
     float* ifmap = calloc(16, sizeof(float));
     float* kernel = calloc(16, sizeof(float));
     float* ofmap1 = calloc(4, sizeof(float));
