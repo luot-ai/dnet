@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     int m = 2, r = 3;
 
     //int w = atoi(argv[1]), h = atoi(argv[1]), c = atoi(argv[2]), n = atoi(argv[3]), groups = 1, size = 3, stride = 1, pad = 0;
-    int w = 14, h = 14, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 1;
+    int w = 48, h = 48, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 1;
 
     float* d = calloc(w * h * c, sizeof(float));
     for (int i = 0; i < w * h * c; i++)
@@ -67,12 +67,15 @@ int main(int argc, char *argv[]) {
 
     transforme_g_winograd2(g_5, transformed_g_5, c, n);
     im2col_winograd1(d_5, c / groups, h, w, size, stride, 2, 3, transformed_d_5, pad);
-    //convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
+    // m5_dump_reset_stats(0,0);
+    // convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
+    m5_dump_reset_stats(0,0);
     convolutional_winograd5_cus(transformed_g_5, transformed_d_5, output_temp_5,h, w, c, n, 2, 3 ,pad);
+    m5_dump_reset_stats(0,0);
     col2im_winograd1(output_temp_5, n, h, w, size, stride, pad, m, output_5);
     
     //m5_dump_reset_stats(0,0);
-    t2 = what_time_is_it_now();
+    // t2 = what_time_is_it_now();
     compareResult(output_5, output_0, out_w * out_h * n);
 
     free(d);

@@ -454,7 +454,6 @@ void backward_bias(float *bias_updates, float *delta, int batch, int n, int size
 
 void forward_convolutional_layer(convolutional_layer l, network net)
 {
-    m5_dump_reset_stats(0,0);
     int i, j;
 
     fill_cpu(l.outputs*l.batch, 0, l.output, 1);
@@ -478,7 +477,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
             float *c = l.output + (i*l.groups + j)*n*m;
             float *im =  net.input + (i*l.groups + j)*l.c/l.groups*l.h*l.w;
 
-            if (l.size == 3 && l.h % 2 == 0)
+            if (l.size == 10 && l.h % 2 == 0 && l.stride==1)
             {
                 b = im ;
                 
@@ -495,6 +494,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
             }
             else
             {
+                m5_dump_reset_stats(0,0);
                 fprintf(stderr,"use im2col+gemm!\n");
                 if (l.size == 1) {
                     b = im;
@@ -502,10 +502,10 @@ void forward_convolutional_layer(convolutional_layer l, network net)
                     im2col_cpu(im, l.c/l.groups, l.h, l.w, l.size, l.stride, l.pad, b);
                 }
                 gemm(0,0,m,n,k,1,a,k,b,n,1,c,n);
+                m5_dump_reset_stats(0,0);
             }
         }
     }
-
     if(l.batch_normalize){
         forward_batchnorm_layer(l, net);
     } else {
@@ -513,8 +513,6 @@ void forward_convolutional_layer(convolutional_layer l, network net)
     }
     activate_array(l.output, l.outputs*l.batch, l.activation);
     if(l.binary || l.xnor) swap_binary(&l);
-
-    m5_dump_reset_stats(0,0);
 }
 
 void backward_convolutional_layer(convolutional_layer l, network net)

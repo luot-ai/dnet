@@ -86,6 +86,7 @@ void forward_maxpool_layer(const maxpool_layer l, network net)
     int w = l.out_w;
     int c = l.c;
 
+    m5_dump_reset_stats(0,0);
     for(b = 0; b < l.batch; ++b){
         for(k = 0; k < c; ++k){
             for(i = 0; i < h; ++i){
@@ -111,6 +112,7 @@ void forward_maxpool_layer(const maxpool_layer l, network net)
             }
         }
     }
+    m5_dump_reset_stats(0,0);
 }
 
 void backward_maxpool_layer(const maxpool_layer l, network net)
