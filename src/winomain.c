@@ -18,6 +18,7 @@ float GT[12] = {1, 0.5, 0.5, 0, 0, 0.5, -0.5, 0, 0, 0.5, 0.5, 1};
 #include "winograd4.h"
 #include "winograd5.h"
 #include "gem5/m5ops.h"
+#include "conv_layers.h"
 // Y=AT[[GgGT]*[BTdB]]A
 int main(int argc, char *argv[]) {
     //------------------------------------------------
@@ -25,9 +26,12 @@ int main(int argc, char *argv[]) {
     int m = 2, r = 3;
 
     //int w = atoi(argv[1]), h = atoi(argv[1]), c = atoi(argv[2]), n = atoi(argv[3]), groups = 1, size = 3, stride = 1, pad = 0;
-    int w = 48, h = 48, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 1;
+    int w = 48, h = 48, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 0;
 
     float* d = calloc(w * h * c, sizeof(float));
+    float *d_copy = calloc(w * h * c, sizeof(float));
+    memcpy(d_copy, d, w * h * c * sizeof(float));
+
     for (int i = 0; i < w * h * c; i++)
         d[i] = rand() % 10;
     float* g = calloc(size * size * c * n, sizeof(float));
@@ -41,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     //------------------------------------------------
     //conv0: im2col+gemm求卷积结果, 结果作为基准值
-    //t1 = what_time_is_it_now();
+    t1 = what_time_is_it_now();
     float* im_0 = d;
     float* a_0 = g;
     float* b_0 =
@@ -63,19 +67,20 @@ int main(int argc, char *argv[]) {
     float* transformed_g_5 = calloc(n * c * 16, sizeof(float));
     float* output_temp_5 = calloc(out_w * out_h * n, sizeof(float));
     float* output_5 = calloc(out_w * out_h * n, sizeof(float));
+
+    //m5_dump_reset_stats(0,0);
+    //RefConv2dF32(d_5,g_5,d_5,c,h,w,n,out_h,out_w,size,groups,pad,stride,0,output_5);
+    transforme_g_winograd2(g_5, transformed_g_5, c, n);
+    //m5_dump_reset_stats(0,0);
+    im2col_winograd1(d_5, c / groups, h, w, size, stride, 2, 3, transformed_d_5, pad);
+    
+    //convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
+    convolutional_winograd5_cus(transformed_g_5, transformed_d_5, output_temp_5,h, w, c, n, 2, 3 ,pad);
+    
+    //convolutional_winograd5_cus_fuse(transformed_g_5, d_copy, output_temp_5,h, w, c, n, 2, 3 ,pad);
+    col2im_winograd1(output_temp_5, n, h, w, size, stride, pad, m, output_5);
     //m5_dump_reset_stats(0,0);
 
-    transforme_g_winograd2(g_5, transformed_g_5, c, n);
-    im2col_winograd1(d_5, c / groups, h, w, size, stride, 2, 3, transformed_d_5, pad);
-    // m5_dump_reset_stats(0,0);
-    // convolutional_winograd5(transformed_g_5, transformed_d_5, output_temp_5, h, w, c, n, 2, 3,pad);
-    m5_dump_reset_stats(0,0);
-    convolutional_winograd5_cus(transformed_g_5, transformed_d_5, output_temp_5,h, w, c, n, 2, 3 ,pad);
-    m5_dump_reset_stats(0,0);
-    col2im_winograd1(output_temp_5, n, h, w, size, stride, pad, m, output_5);
-    
-    //m5_dump_reset_stats(0,0);
-    // t2 = what_time_is_it_now();
     compareResult(output_5, output_0, out_w * out_h * n);
 
     free(d);

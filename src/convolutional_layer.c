@@ -18,6 +18,7 @@ float GT[12] = {1, 0.5, 0.5, 0, 0, 0.5, -0.5, 0, 0, 0.5, 0.5, 1};
 #include "winograd2.h"
 #include "winograd5.h"
 #include "gem5/m5ops.h"
+#include "conv_layers.h"
 #ifdef AI2
 #include "xnor_layer.h"
 #endif
@@ -454,6 +455,7 @@ void backward_bias(float *bias_updates, float *delta, int batch, int n, int size
 
 void forward_convolutional_layer(convolutional_layer l, network net)
 {
+    int use_slide_window = 1;
     int i, j;
 
     fill_cpu(l.outputs*l.batch, 0, l.output, 1);
@@ -491,6 +493,14 @@ void forward_convolutional_layer(convolutional_layer l, network net)
                 // }
                 // gemm(0,0,m,n,k,1,a,k,b,n,1,output_cpare,n);
                 // compareResult(c, output_cpare, l.out_w * l.out_h * l.n/l.groups);
+            }
+            else if (use_slide_window ==1)
+            {
+                m5_dump_reset_stats(0,0);
+                fprintf(stderr,"use slide window!\n");
+                RefConv2dF32(b,a,a,l.c/l.groups,l.h,l.w,l.n/l.groups,l.out_h,l.out_w,l.size,1,l.pad,
+                l.stride,0,c);
+                m5_dump_reset_stats(0,0);
             }
             else
             {
