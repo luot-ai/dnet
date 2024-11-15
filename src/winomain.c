@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
     //测试环境下：由脚本给出参数
     //int w = atoi(argv[1]), h = atoi(argv[1]), c = atoi(argv[2]), n = atoi(argv[3]), groups = 1, size = 3, stride = 1, pad = 0;
-    int w = 48, h = 48, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 0;
+    int w = 16, h = 16, c = 1, n = 1, groups = 1, size = 3, stride = 1, pad = 0;
 
     float* d = calloc(w * h * c, sizeof(float));
     float *d_copy = calloc(w * h * c, sizeof(float));
