@@ -2,7 +2,7 @@ GPU=0
 CUDNN=0
 OPENCV=0
 OPENMP=0
-DEBUG=1
+DEBUG=0
 REF=1
 M5OP=1
 USEWINO=1
@@ -132,6 +132,9 @@ $(SLIB): $(OBJS)
 	$(CC) $(CFLAGS) -shared $^ -o $@ $(LDFLAGS)
 
 $(OBJDIR)%.o: %.cpp $(DEPS)
+	$(CPP) $(COMMON) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR)%.o: %.cc $(DEPS)
 	$(CPP) $(COMMON) $(CFLAGS) -c $< -o $@
 
 $(OBJDIR)%.o: %.c $(DEPS)
