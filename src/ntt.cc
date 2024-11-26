@@ -20,7 +20,6 @@ ll fast_power(ll a, ll k){ //快速幂，a为底数，k为指数
 }
 ll fast_power_cus(ll a, ll k){ //快速幂，a为底数，k为指数
     ll res = 1;
-    set_mod_reg(mod);
     while (k){
         if (k & 1)
             res = mul_mod(res,a);
@@ -48,13 +47,11 @@ void NTT_cus(ll *a, int n, int type) //NTT，type=1时系数表示法转点值�
             }
         }
     }
-    //m5_dump_reset_stats(0,0);
     int len = n;
-    //m5_dump_reset_stats(0,0);
     if(type == 0){
-      	ll inv = fast_power(len, mod-2);
+      	ll inv = fast_power_cus(len, mod-2);
         for(int i = 0; i < len; ++i) 
-          	a[i] = a[i] * inv % mod;
+            a[i] = mul_mod(a[i],inv); 
     }
     m5_dump_reset_stats(0,0);
 }
@@ -75,9 +72,7 @@ void NTT(ll *a, int n, int type) //NTT，type=1时系数表示法转点值表示
             }
         }
     }
-    //m5_dump_reset_stats(0,0);
     int len = n;
-    //m5_dump_reset_stats(0,0);
     if(type == 0){
       	ll inv = fast_power(len, mod-2);
         for(int i = 0; i < len; ++i) 

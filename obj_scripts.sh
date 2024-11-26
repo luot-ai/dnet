@@ -14,7 +14,7 @@ mkdir -p $OUTDIR
 
 
 # List of .o files in the directory
-FILES=(*.o)
+FILES=("ntt.o")
 
 # # List of .o files
 # FILES=("main.o" "gemm.o" "im2col.o" "winomain.o" "winograd1.o" "winograd2.o" "winograd3.o" "winograd4.o" "winograd5.o")
